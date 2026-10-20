@@ -1,0 +1,406 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="InfiniteLense turns real environments into curriculum-linked learning experiences.">
+  <meta name="theme-color" content="#102a43">
+  <title>InfiniteLense | Experiential Learning Portal</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar" aria-label="Main navigation">
+      <a class="brand" href="#dashboard" data-view-link="dashboard" aria-label="InfiniteLense home">
+        <span class="brand-mark"><i></i><i></i><i></i></span>
+        <span><strong>InfiniteLense</strong><small>Learning beyond walls</small></span>
+      </a>
+
+      <nav class="nav-list">
+        <p class="nav-label">Workspace</p>
+        <a class="nav-item active" href="#dashboard" data-view-link="dashboard"><span class="nav-icon">⌂</span>Overview</a>
+        <a class="nav-item" href="#curriculum" data-view-link="curriculum"><span class="nav-icon">▤</span>Curriculum library</a>
+        <a class="nav-item" href="#environment" data-view-link="environment"><span class="nav-icon">⌾</span>Analyse environment</a>
+        <a class="nav-item" href="#activities" data-view-link="activities"><span class="nav-icon">✦</span>Learning activities <span class="nav-count" id="activityNavCount">4</span></a>
+        <a class="nav-item" href="#evidence" data-view-link="evidence"><span class="nav-icon">✓</span>Evidence & assessment</a>
+        <a class="nav-item" href="#insights" data-view-link="insights"><span class="nav-icon">↗</span>Impact insights</a>
+
+        <p class="nav-label nav-label-secondary">Organisation</p>
+        <a class="nav-item" href="#partners" data-view-link="partners"><span class="nav-icon">◎</span>Partners</a>
+        <a class="nav-item" href="#about" data-view-link="about"><span class="nav-icon">i</span>About us</a>
+      </nav>
+
+      <div class="sidebar-card">
+        <span class="eyebrow">MVP PILOT</span>
+        <strong>British Primary</strong>
+        <p>Year 4 · Ages 8–9<br>Science, maths & geography</p>
+        <button class="text-button" data-view-link="curriculum">View standards <span>→</span></button>
+      </div>
+      <div class="sidebar-footer">Private demo · v0.1</div>
+    </aside>
+
+    <div class="sidebar-scrim" id="sidebarScrim"></div>
+
+    <section class="workspace">
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="icon-button menu-button" id="menuButton" aria-label="Open navigation">☰</button>
+          <div>
+            <span class="top-context">Al Noor International School</span>
+            <h1 id="pageTitle">Overview</h1>
+          </div>
+        </div>
+        <div class="topbar-actions">
+          <span class="demo-badge"><i></i> Demo mode</span>
+          <label class="role-picker">
+            <span>Viewing as</span>
+            <select id="roleSelect" aria-label="Choose portal role">
+              <option value="teacher">Teacher</option>
+              <option value="admin">School admin</option>
+              <option value="facilitator">Facilitator</option>
+            </select>
+          </label>
+          <button class="avatar-button" aria-label="User profile">TE</button>
+        </div>
+      </header>
+
+      <main class="main-content">
+        <section class="view active" id="view-dashboard" data-title="Overview">
+          <div class="hero-panel">
+            <div class="hero-copy">
+              <span class="eyebrow eyebrow-light">CURRICULUM INTELLIGENCE × REAL PLACES</span>
+              <h2>Turn any place into a purposeful learning experience.</h2>
+              <p>Connect what students must learn with what they can observe, investigate and create outside the classroom.</p>
+              <div class="hero-actions">
+                <button class="button button-light" data-view-link="environment">Analyse an environment <span>→</span></button>
+                <button class="button button-ghost-light" data-view-link="curriculum">Browse curriculum</button>
+              </div>
+            </div>
+            <div class="hero-orbit" aria-hidden="true">
+              <div class="orbit-ring ring-one"></div>
+              <div class="orbit-ring ring-two"></div>
+              <div class="orbit-core"><span>IL</span><small>Learning engine</small></div>
+              <div class="orbit-chip chip-one">Curriculum</div>
+              <div class="orbit-chip chip-two">Environment</div>
+              <div class="orbit-chip chip-three">Evidence</div>
+            </div>
+          </div>
+
+          <div class="workflow-strip" aria-label="Portal workflow">
+            <div class="workflow-step done"><span>1</span><div><small>SELECT</small><strong>Learning outcome</strong></div></div>
+            <i></i>
+            <div class="workflow-step"><span>2</span><div><small>CAPTURE</small><strong>Environment</strong></div></div>
+            <i></i>
+            <div class="workflow-step"><span>3</span><div><small>DESIGN</small><strong>Experience</strong></div></div>
+            <i></i>
+            <div class="workflow-step"><span>4</span><div><small>PROVE</small><strong>Learning</strong></div></div>
+          </div>
+
+          <div class="section-heading">
+            <div><span class="eyebrow">TODAY</span><h3 id="welcomeHeading">Good afternoon, Teacher</h3><p>Here is what is ready for your Year 4 pilot.</p></div>
+            <button class="button button-secondary" data-view-link="environment">+ New learning plan</button>
+          </div>
+
+          <div class="metric-grid">
+            <article class="metric-card"><span class="metric-icon mint">▤</span><div><small>Curriculum outcomes</small><strong>18</strong><p><b>14</b> ready for experiential learning</p></div></article>
+            <article class="metric-card"><span class="metric-icon amber">✦</span><div><small>Generated activities</small><strong id="dashboardActivityCount">4</strong><p><b>2</b> approved by a teacher</p></div></article>
+            <article class="metric-card"><span class="metric-icon coral">⌾</span><div><small>Mapped environments</small><strong>3</strong><p>Garden · courtyard · library</p></div></article>
+            <article class="metric-card"><span class="metric-icon blue">✓</span><div><small>Evidence submissions</small><strong id="evidenceMetric">12</strong><p><b>83%</b> outcomes demonstrated</p></div></article>
+          </div>
+
+          <div class="dashboard-grid">
+            <article class="panel recent-panel">
+              <div class="panel-heading"><div><h3>Continue planning</h3><p>Recently created experiences</p></div><button class="text-button" data-view-link="activities">View all →</button></div>
+              <div class="activity-row">
+                <div class="activity-thumb habitat"><span>SCIENCE</span></div>
+                <div class="activity-row-copy"><strong>Microhabitat Detectives</strong><p>School garden · Year 4 · 45 min</p><div class="tag-row"><span class="tag tag-green">96% curriculum match</span><span class="tag">Approved</span></div></div>
+                <button class="icon-button" data-view-link="activities" aria-label="Open activity">→</button>
+              </div>
+              <div class="activity-row">
+                <div class="activity-thumb water"><span>SCIENCE</span></div>
+                <div class="activity-row-copy"><strong>Puddle to Cloud</strong><p>Courtyard · Year 4 · 35 min</p><div class="tag-row"><span class="tag tag-green">91% curriculum match</span><span class="tag tag-amber">Review</span></div></div>
+                <button class="icon-button" data-view-link="activities" aria-label="Open activity">→</button>
+              </div>
+            </article>
+            <article class="panel opportunity-panel">
+              <div class="panel-heading"><div><h3>Place opportunity</h3><p>Based on school assets</p></div><span class="mini-score">92</span></div>
+              <div class="opportunity-visual">
+                <div class="sun"></div><div class="tree t1"></div><div class="tree t2"></div><div class="path"></div>
+                <span>School garden</span>
+              </div>
+              <h4>High experiential potential</h4>
+              <p>Your garden can support 9 Year 4 outcomes across science, maths and geography.</p>
+              <button class="button button-primary full" data-view-link="environment">Explore this environment</button>
+            </article>
+          </div>
+        </section>
+
+        <section class="view" id="view-curriculum" data-title="Curriculum library">
+          <div class="page-intro split-intro">
+            <div><span class="eyebrow">CURRICULUM FOUNDATION</span><h2>Standards teachers can trust.</h2><p>Review authorised curriculum content before it is used to generate learning experiences.</p></div>
+            <button class="button button-primary" id="openCurriculumModal">＋ Upload curriculum</button>
+          </div>
+
+          <div class="info-banner">
+            <span>i</span><div><strong>British curriculum naming</strong><p>The National Curriculum for England uses <b>Year 4</b> (typically ages 8–9), not “Grade 4.” Schools can configure local grade-equivalency labels without changing the source standard.</p></div>
+          </div>
+
+          <div class="curriculum-header-card">
+            <div class="curriculum-identity"><span class="curriculum-flag">UK</span><div><small>ACTIVE CURRICULUM</small><h3>National Curriculum in England</h3><p>Primary · Key Stage 2 · Year 4 · Ages 8–9</p></div></div>
+            <div class="verification"><span>✓</span><div><strong>Source verified</strong><small>Department for Education · GOV.UK</small></div></div>
+          </div>
+
+          <div class="filter-bar">
+            <label><span>Curriculum</span><select><option>British — England</option><option disabled>Cambridge Primary (next)</option><option disabled>IB PYP (next)</option></select></label>
+            <label><span>Phase</span><select><option>Primary</option></select></label>
+            <label><span>Year / grade</span><select><option>Year 4 · Ages 8–9</option></select></label>
+            <label class="search-field"><span>Search outcomes</span><input id="standardSearch" type="search" placeholder="e.g. water cycle"></label>
+          </div>
+
+          <div class="subject-tabs" id="subjectTabs">
+            <button class="active" data-subject="All">All <span>18</span></button>
+            <button data-subject="Science">Science <span>9</span></button>
+            <button data-subject="Mathematics">Mathematics <span>5</span></button>
+            <button data-subject="Geography">Geography <span>3</span></button>
+            <button data-subject="English">English <span>1</span></button>
+          </div>
+
+          <div class="standards-meta"><p><strong id="standardCount">18 outcomes</strong> · 14 suitable for experiential learning</p><div class="legend"><span><i class="dot high"></i> High potential</span><span><i class="dot medium"></i> Medium potential</span></div></div>
+          <div class="standard-list" id="standardList"></div>
+          <div class="source-note">
+            <strong>Source governance</strong>
+            <p>Demo outcomes are concise representations of statutory programmes of study. The production portal will retain source text, version date, licensing, document page and reviewer approval.</p>
+            <a href="https://www.gov.uk/government/publications/national-curriculum-in-england-primary-curriculum" target="_blank" rel="noreferrer">Open official GOV.UK source ↗</a>
+          </div>
+        </section>
+
+        <section class="view" id="view-environment" data-title="Analyse environment">
+          <div class="page-intro">
+            <span class="eyebrow">PLACE INTELLIGENCE</span>
+            <h2>What can students learn here?</h2>
+            <p>Capture one environment from several angles—or inspect one photograph through multiple curriculum lenses.</p>
+          </div>
+
+          <div class="stepper">
+            <div class="active"><span>1</span><strong>Capture place</strong></div><i></i>
+            <div><span>2</span><strong>Assess suitability</strong></div><i></i>
+            <div><span>3</span><strong>Generate activities</strong></div>
+          </div>
+
+          <div class="environment-grid">
+            <article class="panel capture-panel">
+              <div class="panel-heading"><div><h3>1. Add the environment</h3><p>Upload several views. They will be analysed as one environment.</p></div><span class="privacy-chip">Private preview</span></div>
+              <label class="dropzone" id="dropzone">
+                <input type="file" id="environmentFile" accept="image/*" multiple>
+                <div class="dropzone-empty" id="dropzoneEmpty">
+                  <span class="upload-icon">⌾</span>
+                  <strong>Drop photographs here or browse</strong>
+                  <p>JPG or PNG · Up to 8 views of the same environment</p>
+                  <span class="fake-button">Choose photographs</span>
+                </div>
+                <div class="sample-scene" id="sampleScene" aria-label="Illustrated school garden sample">
+                  <div class="scene-sky"></div><div class="scene-wall"></div><div class="scene-tree one"></div><div class="scene-tree two"></div><div class="scene-bed"></div><div class="scene-path"></div><span>Sample school garden</span>
+                </div>
+              </label>
+              <div class="photo-preview-grid" id="photoPreviewGrid" aria-live="polite"></div>
+              <button class="text-button centered" id="loadSample">No photo yet? Load the sample school garden →</button>
+
+              <div class="form-grid">
+                <label><span>Curriculum</span><select id="analysisCurriculum"><option>British — England</option><option>Cambridge Primary</option><option>IB PYP</option><option>American Common Core / NGSS</option><option>Indian — CBSE</option><option>SABIS</option></select></label>
+                <label><span>Grade / year</span><select id="analysisGrade"><option>Year 4 · Ages 8–9</option><option>Year 3 · Ages 7–8</option><option>Year 5 · Ages 9–10</option><option>Year 6 · Ages 10–11</option></select></label>
+                <label><span>Subject</span><select id="analysisSubject"><option>Science</option><option>Mathematics</option><option>Geography</option><option>English</option><option>Art & Design</option></select></label>
+                <label><span>Environment type</span><select id="environmentType"><option>School garden</option><option>Courtyard</option><option>Playground</option><option>Library</option><option>Beach / coast</option><option>Mangrove</option><option>Museum</option><option>Urban street</option><option>Other</option></select></label>
+                <label><span>Location</span><input id="environmentLocation" value="Dubai, UAE"></label>
+                <label><span>Number of students</span><input id="groupSize" type="number" min="1" max="100" value="24"></label>
+                <label><span>Student ages</span><input id="studentAges" value="8–9"></label>
+                <label class="wide consent-check"><input id="faceConsent" type="checkbox"><span><strong>Recorded consent confirmed</strong><small>Required only when photographs contain identifiable student faces.</small></span></label>
+                <label class="wide"><span>What should we consider?</span><textarea id="environmentNotes" rows="3" placeholder="Shade, accessibility, available materials, time limits…">Shaded in the morning; raised planting beds; water tap nearby; one accessible paved route.</textarea></label>
+              </div>
+              <button class="button button-primary full analyse-button" id="analyseButton"><span>Analyse learning potential</span><b>→</b></button>
+              <p class="demo-note">Investor MVP: the full interface works with representative demo results. Secure AI vision is the next integration step.</p>
+            </article>
+
+            <aside class="panel context-panel">
+              <span class="eyebrow">SELECTED LEARNING CONTEXT</span>
+              <h3 id="contextTitle">British Primary · Year 4</h3>
+              <p>National Curriculum in England</p>
+              <hr>
+              <div class="context-row"><span>Selected subject</span><strong id="contextSubject">Science</strong></div>
+              <div class="context-row"><span>Duration</span><strong>30–60 minutes</strong></div>
+              <div class="context-row"><span>Evidence</span><strong>Photo + observation</strong></div>
+              <hr>
+              <h4>Priority outcomes</h4>
+              <div class="compact-standard"><span>SCI-Y4-LH-02</span><p>Use classification keys to identify local living things.</p></div>
+              <div class="compact-standard"><span>MAT-Y4-ST-01</span><p>Collect and present data using appropriate graphs.</p></div>
+              <button class="text-button" data-view-link="curriculum">Change outcomes →</button>
+            </aside>
+          </div>
+
+          <section class="analysis-results" id="analysisResults" aria-live="polite">
+            <div class="results-heading">
+              <div><span class="eyebrow">ENVIRONMENT ASSESSMENT</span><h3>School garden learning potential</h3><p>Generated from visual cues and the context provided.</p></div>
+              <div class="suitability-score"><span>92</span><small>/ 100<br>Excellent</small></div>
+            </div>
+            <div class="lens-grid">
+              <article><span class="result-icon mint">＋</span><h4>Objects, materials & tools</h4><p>Raised beds, leaves, soil, water tap, paving and measurement-ready boundaries.</p></article>
+              <article><span class="result-icon amber">◇</span><h4>Colours, shapes & measures</h4><p>Natural colour variation, repeated rectangles, perimeter, area and comparative scale.</p></article>
+              <article><span class="result-icon blue">◎</span><h4>Living systems & forces</h4><p>Plant diversity, microhabitats, sunlight, evaporation, gravity and material states.</p></article>
+              <article><span class="result-icon coral">✦</span><h4>Culture, language & sustainability</h4><p>Local climate adaptation, descriptive vocabulary, stewardship and responsible water use.</p></article>
+            </div>
+            <div class="evidence-link-panel"><strong>Exact visible-evidence link</strong><p><b>SCI-Y4-LH-02:</b> “Use classification keys to help group, identify and name living things in their local and wider environment.” Visible evidence: multiple leaf forms, stems, ground cover and microhabitat boundaries.</p></div>
+            <div class="results-action"><div><strong>11 curriculum opportunities found</strong><p>Three best-fit activities are ranked and ready for students.</p></div><button class="button button-primary" id="generateActivities">View ranked activities <span>→</span></button></div>
+          </section>
+        </section>
+
+        <section class="view" id="view-activities" data-title="Learning activities">
+          <div class="page-intro split-intro">
+            <div><span class="eyebrow">EXPERIENCE DESIGN</span><h2>Curriculum-linked activities.</h2><p>Every suggestion explains what students do, why it matters and how learning will be evidenced.</p></div>
+            <button class="button button-primary" data-view-link="environment">＋ Generate from a place</button>
+          </div>
+
+          <div class="review-banner"><div><span>✦</span><div><strong>Three activities ranked for this environment</strong><p>Students can immediately view the suggestions; staff can guide delivery and safety.</p></div></div><button class="button button-secondary" id="generateMore">Generate more</button></div>
+
+          <div class="activity-card-grid" id="activityCards"></div>
+        </section>
+
+        <section class="view" id="view-evidence" data-title="Evidence & assessment">
+          <div class="page-intro">
+            <span class="eyebrow">VISIBLE LEARNING</span>
+            <h2>Capture evidence, not extra paperwork.</h2>
+            <p>Students document what they observed and explain what it proves. Teachers remain the final decision-maker.</p>
+          </div>
+          <div class="evidence-grid">
+            <article class="panel evidence-form">
+              <div class="panel-heading"><div><h3>New evidence submission</h3><p>Use initials or a school identifier—never a full student name.</p></div><span class="privacy-chip">Child-safe design</span></div>
+              <div class="form-grid">
+                <label class="wide"><span>Approved activity</span><select id="evidenceActivity"><option>Microhabitat Detectives</option><option>Measure the Living Map</option></select></label>
+                <label><span>Student initials / ID</span><input id="studentId" placeholder="e.g. S-104"></label>
+                <label><span>Group</span><select><option>4A · Group 1</option><option>4A · Group 2</option></select></label>
+              </div>
+              <label class="evidence-drop">
+                <input type="file" id="evidenceFile" accept="image/*,video/*" multiple>
+                <span>＋</span><strong>Add photographs or video evidence</strong><small>No file is uploaded in demo mode</small>
+              </label>
+              <label class="field-block"><span>Student observation</span><textarea id="studentObservation" rows="4" placeholder="What did the student notice, measure or explain?"></textarea></label>
+              <label class="field-block"><span>Teacher feedback</span><textarea id="teacherFeedback" rows="3" placeholder="Optional feedback or next step"></textarea></label>
+              <button class="button button-primary full" id="saveEvidence">Save evidence</button>
+            </article>
+            <aside class="panel rubric-card">
+              <span class="eyebrow">ASSESSMENT RUBRIC</span>
+              <h3>Microhabitat Detectives</h3>
+              <p class="mapped-outcome">SCI-Y4-LH-02 · Classification keys</p>
+              <div class="rubric-row"><div><strong>Observe</strong><p>Records relevant visible features</p></div><select><option>Secure</option><option>Developing</option><option>Exceeding</option></select></div>
+              <div class="rubric-row"><div><strong>Classify</strong><p>Uses a key accurately</p></div><select><option>Secure</option><option>Developing</option><option>Exceeding</option></select></div>
+              <div class="rubric-row"><div><strong>Explain</strong><p>Justifies classification with evidence</p></div><select><option>Developing</option><option>Secure</option><option>Exceeding</option></select></div>
+              <div class="rubric-row"><div><strong>Reflect</strong><p>Connects place to learning</p></div><select><option>Secure</option><option>Developing</option><option>Exceeding</option></select></div>
+              <div class="teacher-control"><span>✓</span><p><strong>Teacher confirmation required</strong><br>The portal supports judgement; it does not award attainment autonomously.</p></div>
+            </aside>
+          </div>
+        </section>
+
+        <section class="view" id="view-insights" data-title="Impact insights">
+          <div class="page-intro">
+            <span class="eyebrow">PILOT EVIDENCE</span>
+            <h2>Prove what changes when learning moves.</h2>
+            <p>Track curriculum coverage, outdoor learning time and demonstrated outcomes.</p>
+          </div>
+          <div class="metric-grid insights-metrics">
+            <article class="metric-card"><span class="metric-icon mint">↗</span><div><small>Outside-class learning</small><strong>7.5h</strong><p>This month · Year 4</p></div></article>
+            <article class="metric-card"><span class="metric-icon blue">◎</span><div><small>Outcome coverage</small><strong>78%</strong><p>11 of 14 pilot outcomes</p></div></article>
+            <article class="metric-card"><span class="metric-icon amber">★</span><div><small>Teacher usefulness</small><strong>4.6</strong><p>Average out of 5</p></div></article>
+            <article class="metric-card"><span class="metric-icon coral">✓</span><div><small>Participation</small><strong>92%</strong><p>Students submitting evidence</p></div></article>
+          </div>
+          <div class="insights-grid">
+            <article class="panel">
+              <div class="panel-heading"><div><h3>Experiential curriculum coverage</h3><p>Approved activities by subject</p></div><select><option>Year 4 pilot</option></select></div>
+              <div class="bar-chart">
+                <div><span>Science</span><i><b style="width:86%"></b></i><strong>86%</strong></div>
+                <div><span>Mathematics</span><i><b style="width:64%"></b></i><strong>64%</strong></div>
+                <div><span>Geography</span><i><b style="width:78%"></b></i><strong>78%</strong></div>
+                <div><span>English</span><i><b style="width:48%"></b></i><strong>48%</strong></div>
+              </div>
+            </article>
+            <article class="panel">
+              <div class="panel-heading"><div><h3>Place utilisation</h3><p>School assets activated for learning</p></div></div>
+              <div class="place-list">
+                <div><span class="place-rank">01</span><p><strong>School garden</strong><small>4 activities · 9 outcomes</small></p><b>High</b></div>
+                <div><span class="place-rank">02</span><p><strong>Courtyard</strong><small>3 activities · 6 outcomes</small></p><b>High</b></div>
+                <div><span class="place-rank">03</span><p><strong>Library</strong><small>2 activities · 4 outcomes</small></p><b>Medium</b></div>
+              </div>
+            </article>
+          </div>
+          <p class="prototype-disclaimer">Illustrative pilot data for MVP demonstration. Production dashboards will use consented, school-owned records.</p>
+        </section>
+
+        <section class="view" id="view-partners" data-title="Partners">
+          <div class="page-intro">
+            <span class="eyebrow">PARTNER ECOSYSTEM</span>
+            <h2>Learning places are everywhere.</h2>
+            <p>We are building a network that connects schools, curriculum expertise and real-world environments.</p>
+          </div>
+          <div class="partner-hero">
+            <div><h3>Become a founding pilot partner</h3><p>Help validate the platform with one year group, one curriculum and a focused set of learning environments.</p><a class="button button-light" href="mailto:partners@moreinyou.education">Discuss a pilot <span>→</span></a></div>
+            <div class="pilot-box"><span>8–12 weeks</span><strong>Pilot format</strong><p>1 school · 4–8 teachers<br>3 school environments<br>10 curriculum-linked activities</p></div>
+          </div>
+          <div class="partner-grid">
+            <article><span>01</span><h3>Pilot schools</h3><p>Co-design workflows, test activities and measure teacher time, student engagement and curriculum evidence.</p><small>Schools · school groups · operators</small></article>
+            <article><span>02</span><h3>Curriculum partners</h3><p>Validate standards, mappings, assessment rubrics and responsible interpretation across frameworks.</p><small>Publishers · advisers · universities</small></article>
+            <article><span>03</span><h3>Place partners</h3><p>Transform museums, parks, mangroves, farms and cultural sites into structured learning destinations.</p><small>Venues · municipalities · NGOs</small></article>
+            <article><span>04</span><h3>Research & technology</h3><p>Study learning impact, inclusion, AI quality and safe adoption in real school settings.</p><small>Researchers · funders · technology</small></article>
+          </div>
+        </section>
+
+        <section class="view" id="view-about" data-title="About us">
+          <div class="about-hero">
+            <span class="eyebrow eyebrow-light">ABOUT MORE IN YOU</span>
+            <h2>Education should not stop at the classroom door.</h2>
+            <p>We help educators turn the places around them into safe, purposeful and measurable learning experiences.</p>
+          </div>
+          <div class="about-grid">
+            <article><span class="eyebrow">THE PROBLEM</span><h3>Curriculum and place are disconnected.</h3><p>Teachers have limited time to translate formal outcomes into safe outdoor experiences. Schools also underuse the assets, spaces and communities already around them.</p></article>
+            <article><span class="eyebrow">OUR APPROACH</span><h3>Curriculum first. Place aware. Teacher controlled.</h3><p>The portal connects authorised standards to observable environments, proposes feasible activities and captures evidence—while educators approve every consequential decision.</p></article>
+          </div>
+          <div class="principles-panel">
+            <div><span>01</span><h4>Purpose before novelty</h4><p>Every activity begins with a learning outcome.</p></div>
+            <div><span>02</span><h4>Teachers stay in control</h4><p>Technology supports professional judgement.</p></div>
+            <div><span>03</span><h4>Safety by design</h4><p>Context, inclusion and safeguarding are explicit.</p></div>
+            <div><span>04</span><h4>Evidence that matters</h4><p>Students show what they observed and understood.</p></div>
+          </div>
+          <div class="team-placeholder">
+            <div><span class="eyebrow">FOUNDING TEAM</span><h3>Built at the intersection of education, school design and technology.</h3><p>Founder biographies, advisers and governance details will be added before external investor distribution.</p></div>
+            <button class="button button-secondary">Add team profiles later</button>
+          </div>
+        </section>
+      </main>
+    </section>
+  </div>
+
+  <div class="modal" id="curriculumModal" role="dialog" aria-modal="true" aria-labelledby="curriculumModalTitle">
+    <div class="modal-card">
+      <button class="modal-close" data-close-modal aria-label="Close">×</button>
+      <span class="eyebrow">ADMIN WORKFLOW</span>
+      <h2 id="curriculumModalTitle">Upload curriculum content</h2>
+      <p>Upload only content your organisation is authorised to use. Every extracted outcome will require human review.</p>
+      <div class="form-grid modal-form">
+        <label><span>Curriculum</span><select><option>British — England</option><option>Cambridge Primary</option><option>IB PYP</option><option>American</option></select></label>
+        <label><span>Year / grade</span><select><option>Year 4 · Ages 8–9</option></select></label>
+        <label><span>Subject</span><select><option>Science</option><option>Mathematics</option><option>Geography</option><option>English</option></select></label>
+        <label><span>Source version</span><input value="2021 / current verified version"></label>
+      </div>
+      <label class="modal-upload"><input type="file" id="curriculumFile" accept=".pdf,.doc,.docx,.csv"><span>⇧</span><strong id="curriculumFileLabel">Choose PDF, Word or CSV</strong><small>Maximum 25 MB in production</small></label>
+      <div class="modal-governance"><span>✓</span><p><strong>Review gate enabled</strong><br>Nothing becomes searchable until an administrator confirms the source and extracted outcomes.</p></div>
+      <button class="button button-primary full" id="processCurriculum">Add to review queue</button>
+    </div>
+  </div>
+
+  <div class="modal" id="activityModal" role="dialog" aria-modal="true" aria-labelledby="activityModalTitle">
+    <div class="modal-card modal-wide">
+      <button class="modal-close" data-close-modal aria-label="Close">×</button>
+      <div id="activityModalContent"></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"><span>✓</span><p></p></div>
+  <script src="app.js"></script>
+</body>
+</html>
