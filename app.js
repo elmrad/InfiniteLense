@@ -19,7 +19,7 @@ const standards = [
   { subject: "English", strand: "Spoken language", code: "ENG-KS2-SL-01", title: "Explain findings to an audience", detail: "Give a structured description, ask relevant questions and justify ideas with evidence.", potential: "High" }
 ];
 
-const activities = [
+let activities = [
   {
     id: "habitat", title: "Microhabitat Detectives", match: 96, status: "approved",
     description: "Teams survey two garden microhabitats, build a branching classification key and explain how visible features support identification.",
@@ -233,7 +233,60 @@ qs("#environmentFile").addEventListener("change", event => {
 });
 qs("#loadSample").addEventListener("click", () => { setEnvironmentPreview("sample"); showToast("Sample school garden loaded."); });
 
-qs("#analyseButton").addEventListener("click", () => {
+function compressImage(file) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    const reader = new FileReader();
+    reader.onerror = reject;
+    reader.onload = () => { image.src = reader.result; };
+    image.onerror = reject;
+    image.onload = () => {
+      const maximum = 1200;
+      const scale = Math.min(1, maximum / Math.max(image.width, image.height));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.round(image.width * scale);
+      canvas.height = Math.round(image.height * scale);
+      canvas.getContext("2d").drawImage(image, 0, 0, canvas.width, canvas.height);
+      resolve(canvas.toDataURL("image/jpeg", .76));
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function applyAIPlan(plan) {
+  qs("#analysisResults .results-heading h3").textContent = plan.environment_summary;
+  qs("#analysisResults .suitability-score span").textContent = plan.suitability_score;
+  const lensCards = qsa("#analysisResults .lens-grid article");
+  plan.lenses.forEach((lens, index) => {
+    if (!lensCards[index]) return;
+    qs("h4", lensCards[index]).textContent = lens.name;
+    qs("p", lensCards[index]).textContent = `${lens.visible_evidence.join(" · ")} — ${lens.learning_possibilities.join(" · ")}`;
+  });
+  const strongest = plan.outcomes[0];
+  if (strongest) {
+    const evidence = qs("#analysisResults .evidence-link-panel p");
+    evidence.textContent = `${strongest.code}: ${strongest.outcome} Visible evidence: ${strongest.visible_evidence}`;
+    if (/^https:\/\//i.test(strongest.source_url)) {
+      const source = document.createElement("a");
+      source.href = strongest.source_url;
+      source.target = "_blank";
+      source.rel = "noreferrer";
+      source.textContent = " Source ↗";
+      evidence.appendChild(source);
+    }
+  }
+  activities = plan.activities.map((activity, index) => ({
+    id: `ai-${Date.now()}-${index}`, title: activity.title, match: activity.curriculum_match, status: "suggested",
+    description: `Ranked for the visible environment and selected ${qs("#analysisSubject").value} outcomes.`,
+    subject: qs("#analysisSubject").value + (activity.cross_curricular.length ? " + cross-curricular" : ""),
+    duration: `${activity.duration_minutes} min`, group: activity.grouping, setting: qs("#environmentType").value,
+    code: activity.outcome_codes.join(", "), outcome: plan.outcomes.filter(item => activity.outcome_codes.includes(item.code)).map(item => item.outcome).join(" ") || "Curriculum-linked experiential outcome",
+    materials: activity.materials, steps: activity.steps, evidence: activity.evidence, safety: activity.safety.join(" ")
+  }));
+  state.visibleActivities = 3;
+}
+
+qs("#analyseButton").addEventListener("click", async () => {
   if (!state.environmentReady) { showToast("Add a photo or load the sample environment first."); return; }
   const hasFaces = confirm("Do any selected photographs contain identifiable student faces?\n\nChoose OK for yes or Cancel for no.");
   if (hasFaces && !qs("#faceConsent").checked) { showToast("Record consent before analysing photographs with identifiable faces."); return; }
@@ -243,14 +296,39 @@ qs("#analyseButton").addEventListener("click", () => {
   button.classList.add("loading");
   qs("span", button).textContent = "Assessing environment";
   button.disabled = true;
-  setTimeout(() => {
+  try {
+    const apiUrl = window.INFINITE_LENSE_API_URL;
+    if (apiUrl && state.environmentPhotos.length) {
+      const images = await Promise.all(state.environmentPhotos.map(compressImage));
+      const result = await fetch(apiUrl, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          images, curriculum: qs("#analysisCurriculum").value, grade: qs("#analysisGrade").value,
+          subject: qs("#analysisSubject").value, studentCount: Number(qs("#groupSize").value),
+          studentAges: qs("#studentAges").value, environmentType: qs("#environmentType").value,
+          location: qs("#environmentLocation").value, notes: qs("#environmentNotes").value,
+          facesDeclared: hasFaces, consentConfirmed: qs("#faceConsent").checked
+        })
+      });
+      const payload = await result.json();
+      if (!result.ok) throw new Error(payload.error || "Analysis failed.");
+      applyAIPlan(payload.plan);
+      showToast("Live AI curriculum analysis complete.");
+    } else {
+      await new Promise(resolve => setTimeout(resolve, 1150));
+      showToast(apiUrl ? "The sample uses representative demo results." : "Demo analysis complete. Connect the AWS endpoint for live AI.");
+    }
+  } catch (error) {
+    showToast(error.message || "The environment could not be analysed.");
+    return;
+  } finally {
     button.classList.remove("loading");
     qs("span", button).textContent = "Analysis complete";
     button.disabled = false;
+  }
     qs("#analysisResults").classList.add("visible");
     qs("#analysisResults").scrollIntoView({ behavior: "smooth", block: "start" });
-    showToast("11 curriculum opportunities found.");
-  }, 1150);
 });
 
 qs("#generateActivities").addEventListener("click", () => {
