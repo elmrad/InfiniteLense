@@ -18,3 +18,23 @@ The current analysis uses representative demo logic. A secure server-side OpenAI
 ## AWS Amplify
 
 The included `amplify.yml` publishes the static portal from `dist/`.
+
+## Live AI backend
+
+The `backend/` directory contains an AWS SAM Lambda service that:
+
+- Retrieves `OPENAI_API_KEY` from the `InfiniteLense/prod/openai` Secrets Manager secret
+- Combines up to eight environment photographs into one analysis
+- Uses the OpenAI Responses API with vision, web search and Structured Outputs
+- Returns four lenses, verified curriculum links and exactly three ranked activities
+
+Deploy from AWS CloudShell:
+
+```bash
+git clone https://github.com/elmrad/InfiniteLense.git
+cd InfiniteLense/backend
+sam build
+sam deploy --guided
+```
+
+After deployment, copy the `AnalysisApiUrl` stack output into `config.js` as `window.INFINITE_LENSE_API_URL`, commit it, and Amplify will redeploy automatically. The API key must never appear in `config.js`.
