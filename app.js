@@ -74,6 +74,105 @@ const state = {
 
 const qs = (selector, root = document) => root.querySelector(selector);
 const qsa = (selector, root = document) => [...root.querySelectorAll(selector)];
+const esc = value => String(value ?? "").replace(/[&<>'"]/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[char]);
+
+function authConfig() {
+  return window.INFINITE_LENSE_AUTH || {};
+}
+
+function authIsConfigured() {
+  const config = authConfig();
+  return Boolean(config.domain && config.clientId && config.redirectUri);
+}
+
+function decodeTokenPayload(token) {
+  try {
+    const encoded = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+    return JSON.parse(atob(encoded));
+  } catch { return {}; }
+}
+
+function currentIdToken() {
+  const token = sessionStorage.getItem("il_id_token");
+  if (!token) return "";
+  const payload = decodeTokenPayload(token);
+  if (!payload.exp || payload.exp * 1000 < Date.now() + 30_000) {
+    sessionStorage.removeItem("il_id_token");
+    return "";
+  }
+  return token;
+}
+
+function randomBase64Url(bytes = 32) {
+  const values = crypto.getRandomValues(new Uint8Array(bytes));
+  return btoa(String.fromCharCode(...values)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+}
+
+async function sha256Base64Url(value) {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
+  return btoa(String.fromCharCode(...new Uint8Array(digest))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+}
+
+async function beginLogin() {
+  if (!authIsConfigured()) { showToast("Cognito is not configured yet."); return; }
+  const config = authConfig();
+  const verifier = randomBase64Url(48);
+  const stateValue = randomBase64Url(24);
+  sessionStorage.setItem("il_pkce_verifier", verifier);
+  sessionStorage.setItem("il_oauth_state", stateValue);
+  const challenge = await sha256Base64Url(verifier);
+  const query = new URLSearchParams({
+    response_type: "code", client_id: config.clientId, redirect_uri: config.redirectUri,
+    scope: "openid email", state: stateValue, code_challenge: challenge, code_challenge_method: "S256"
+  });
+  location.assign(`${config.domain}/oauth2/authorize?${query}`);
+}
+
+async function finishLogin() {
+  if (!authIsConfigured()) return;
+  const query = new URLSearchParams(location.search);
+  const code = query.get("code");
+  if (!code) return;
+  const returnedState = query.get("state");
+  const savedState = sessionStorage.getItem("il_oauth_state");
+  const verifier = sessionStorage.getItem("il_pkce_verifier");
+  if (!returnedState || returnedState !== savedState || !verifier) throw new Error("The sign-in response could not be verified.");
+  const config = authConfig();
+  const tokenResponse = await fetch(`${config.domain}/oauth2/token`, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ grant_type: "authorization_code", client_id: config.clientId, code, redirect_uri: config.redirectUri, code_verifier: verifier })
+  });
+  const tokens = await tokenResponse.json();
+  if (!tokenResponse.ok || !tokens.id_token) throw new Error("Sign-in could not be completed.");
+  sessionStorage.setItem("il_id_token", tokens.id_token);
+  sessionStorage.removeItem("il_pkce_verifier");
+  sessionStorage.removeItem("il_oauth_state");
+  history.replaceState({}, document.title, location.pathname + location.hash);
+}
+
+function updateAuthButton() {
+  const button = qs("#authButton");
+  if (!button) return;
+  if (!authIsConfigured()) {
+    button.textContent = "Demo mode";
+    button.disabled = true;
+  } else if (currentIdToken()) {
+    button.textContent = "Sign out";
+    button.disabled = false;
+  } else {
+    button.textContent = "Sign in";
+    button.disabled = false;
+  }
+}
+
+qs("#authButton").addEventListener("click", async () => {
+  if (!currentIdToken()) return beginLogin();
+  const config = authConfig();
+  sessionStorage.removeItem("il_id_token");
+  const query = new URLSearchParams({ client_id: config.clientId, logout_uri: config.redirectUri });
+  location.assign(`${config.domain}/logout?${query}`);
+});
 
 function showToast(message) {
   const toast = qs("#toast");
@@ -136,11 +235,11 @@ function renderActivities() {
     const approved = state.approved.has(activity.id);
     return `
       <article class="learning-card">
-        <div class="learning-card-header"><span class="rank-badge">#${index + 1} ranked</span><span class="match-badge">${activity.match}% curriculum match</span><h3>${activity.title}</h3></div>
+        <div class="learning-card-header"><span class="rank-badge">#${index + 1} ranked</span><span class="match-badge">${esc(activity.match)}% curriculum match</span><h3>${esc(activity.title)}</h3></div>
         <div class="learning-card-body">
-          <p>${activity.description}</p>
-          <div class="activity-meta"><span>${activity.subject}</span><span>${activity.duration}</span><span>${activity.group}</span></div>
-          <div class="outcome-link"><span>${activity.code}</span><p>${activity.outcome}</p></div>
+          <p>${esc(activity.description)}</p>
+          <div class="activity-meta"><span>${esc(activity.subject)}</span><span>${esc(activity.duration)}</span><span>${esc(activity.group)}</span></div>
+          <div class="outcome-link"><span>${esc(activity.code)}</span><p>${esc(activity.outcome)}</p></div>
           <div class="learning-card-actions">
             <button class="button button-secondary" data-activity-details="${activity.id}">View plan</button>
             <button class="button ${approved ? "approved approve-button" : "button-primary approve-button"}" data-approve="${activity.id}">${approved ? "✓ Approved" : "Approve activity"}</button>
@@ -166,13 +265,13 @@ function openActivity(id) {
   const activity = activities.find(item => item.id === id);
   if (!activity) return;
   qs("#activityModalContent").innerHTML = `
-    <div class="activity-modal-hero"><span class="eyebrow">${activity.match}% CURRICULUM MATCH · ${activity.setting.toUpperCase()}</span><h2 id="activityModalTitle">${activity.title}</h2><p>${activity.description}</p></div>
+    <div class="activity-modal-hero"><span class="eyebrow">${esc(activity.match)}% CURRICULUM MATCH · ${esc(activity.setting.toUpperCase())}</span><h2 id="activityModalTitle">${esc(activity.title)}</h2><p>${esc(activity.description)}</p></div>
     <div class="detail-grid">
-      <div class="detail-outcome"><span>MAPPED LEARNING OUTCOME · ${activity.code}</span><p>${activity.outcome}</p></div>
-      <div class="detail-block"><h4>Materials</h4><ul>${activity.materials.map(item => "<li>" + item + "</li>").join("")}</ul></div>
-      <div class="detail-block"><h4>Evidence of learning</h4><p>${activity.evidence}</p></div>
-      <div class="detail-block"><h4>Student experience</h4><ol>${activity.steps.map(item => "<li>" + item + "</li>").join("")}</ol></div>
-      <div class="detail-block"><h4>Safety & inclusion</h4><p>${activity.safety}</p></div>
+      <div class="detail-outcome"><span>MAPPED LEARNING OUTCOME · ${esc(activity.code)}</span><p>${esc(activity.outcome)}</p></div>
+      <div class="detail-block"><h4>Materials</h4><ul>${activity.materials.map(item => "<li>" + esc(item) + "</li>").join("")}</ul></div>
+      <div class="detail-block"><h4>Evidence of learning</h4><p>${esc(activity.evidence)}</p></div>
+      <div class="detail-block"><h4>Student experience</h4><ol>${activity.steps.map(item => "<li>" + esc(item) + "</li>").join("")}</ol></div>
+      <div class="detail-block"><h4>Safety & inclusion</h4><p>${esc(activity.safety)}</p></div>
     </div>
     <button class="button button-primary full" style="margin-top:16px" data-modal-approve="${activity.id}">${state.approved.has(activity.id) ? "✓ Teacher approved" : "Approve this activity"}</button>`;
   qs("#activityModal").classList.add("open");
@@ -299,10 +398,12 @@ qs("#analyseButton").addEventListener("click", async () => {
   try {
     const apiUrl = window.INFINITE_LENSE_API_URL;
     if (apiUrl && state.environmentPhotos.length) {
+      const idToken = currentIdToken();
+      if (!idToken) { showToast("Sign in to run live AI analysis."); await beginLogin(); return; }
       const images = await Promise.all(state.environmentPhotos.map(compressImage));
       const result = await fetch(apiUrl, {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: { "content-type": "application/json", authorization: `Bearer ${idToken}` },
         body: JSON.stringify({
           images, curriculum: qs("#analysisCurriculum").value, grade: qs("#analysisGrade").value,
           subject: qs("#analysisSubject").value, studentCount: Number(qs("#groupSize").value),
@@ -388,6 +489,8 @@ try {
   savedApproved.forEach(id => state.approved.add(id));
 } catch {}
 qs("#evidenceMetric").textContent = state.evidence;
+finishLogin().then(() => { updateAuthButton(); if (currentIdToken()) showToast("Signed in securely."); }).catch(error => { updateAuthButton(); showToast(error.message); });
+updateAuthButton();
 renderStandards();
 renderActivities();
 setView((location.hash || "#dashboard").slice(1), false);
