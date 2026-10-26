@@ -1,0 +1,105 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Cognito-protected InfiniteLense experiential-learning analysis API
+
+Parameters:
+  PortalUrl:
+    Type: String
+    Description: Exact Amplify URL without a trailing slash
+  CognitoDomainPrefix:
+    Type: String
+    Description: Globally unique lowercase prefix, for example infinitelense-elmrad
+    AllowedPattern: '^[a-z0-9-]+$'
+
+Resources:
+  TeacherUserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: InfiniteLense-Teachers
+      UsernameAttributes: [email]
+      AutoVerifiedAttributes: [email]
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: true
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 10
+          RequireLowercase: true
+          RequireUppercase: true
+          RequireNumbers: true
+          RequireSymbols: false
+
+  TeacherPortalClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: InfiniteLense-Web
+      UserPoolId: !Ref TeacherUserPool
+      GenerateSecret: false
+      SupportedIdentityProviders: [COGNITO]
+      AllowedOAuthFlowsUserPoolClient: true
+      AllowedOAuthFlows: [code]
+      AllowedOAuthScopes: [openid, email]
+      CallbackURLs: [!Ref PortalUrl]
+      LogoutURLs: [!Ref PortalUrl]
+      PreventUserExistenceErrors: ENABLED
+
+  TeacherPortalDomain:
+    Type: AWS::Cognito::UserPoolDomain
+    Properties:
+      Domain: !Ref CognitoDomainPrefix
+      UserPoolId: !Ref TeacherUserPool
+
+  AnalysisApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      CorsConfiguration:
+        AllowOrigins: [!Ref PortalUrl]
+        AllowMethods: [POST, OPTIONS]
+        AllowHeaders: [authorization, content-type]
+        MaxAge: 300
+      Auth:
+        DefaultAuthorizer: TeacherAuthorizer
+        Authorizers:
+          TeacherAuthorizer:
+            JwtConfiguration:
+              issuer: !Sub https://cognito-idp.${AWS::Region}.amazonaws.com/${TeacherUserPool}
+              audience: [!Ref TeacherPortalClient]
+            IdentitySource: $request.header.Authorization
+
+  AnalyzeEnvironmentFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: InfiniteLense-AnalyzeEnvironment
+      Runtime: nodejs22.x
+      Architectures: [arm64]
+      Handler: index.handler
+      CodeUri: .
+      MemorySize: 1024
+      Timeout: 120
+      ReservedConcurrentExecutions: 2
+      Environment:
+        Variables:
+          OPENAI_SECRET_ID: InfiniteLense/prod/openai
+          OPENAI_MODEL: gpt-6-luna
+          ALLOWED_ORIGIN: !Ref PortalUrl
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action: secretsmanager:GetSecretValue
+              Resource: !Sub arn:${AWS::Partition}:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:InfiniteLense/prod/openai-*
+      Events:
+        Analyze:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref AnalysisApi
+            Path: /analyze
+            Method: POST
+
+Outputs:
+  AnalysisApiUrl:
+    Value: !Sub https://${AnalysisApi}.execute-api.${AWS::Region}.amazonaws.com/analyze
+  CognitoDomain:
+    Value: !Sub https://${CognitoDomainPrefix}.auth.${AWS::Region}.amazoncognito.com
+  CognitoClientId:
+    Value: !Ref TeacherPortalClient
+  CognitoUserPoolId:
+    Value: !Ref TeacherUserPool
