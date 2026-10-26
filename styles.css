@@ -251,3 +251,12 @@ select:focus, input:focus, textarea:focus { border-color: var(--teal-500); box-s
 .evidence-link-panel p{margin:6px 0 0;color:var(--navy-800);font-size:13px;line-height:1.65}
 .rank-badge{display:inline-flex;margin-right:6px;padding:5px 9px;border-radius:999px;background:#fff3d8;color:#8b5b00;font-size:10px;font-weight:850;text-transform:uppercase;letter-spacing:.45px}
 @media(max-width:760px){.photo-preview-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.lens-grid{grid-template-columns:1fr}}
+
+
+/* Photograph-to-curriculum evidence mapping */
+.evidence-link-panel > strong{display:block;margin-bottom:12px;color:var(--navy-900);font-size:14px}
+.photo-learning-map{margin-top:11px;padding:16px;border:1px solid #cfe7e2;border-radius:13px;background:#fff}
+.photo-learning-map h4{margin:0 0 9px;color:var(--navy-900);font-size:14px}
+.photo-learning-map p{margin:6px 0;color:var(--muted);font-size:12px;line-height:1.55}
+.photo-learning-map p b{color:var(--ink)}
+.photo-learning-map a{color:var(--teal-700);font-weight:750;text-decoration:underline;text-underline-offset:2px}
