@@ -361,18 +361,26 @@ function applyAIPlan(plan) {
     qs("h4", lensCards[index]).textContent = lens.name;
     qs("p", lensCards[index]).textContent = `${lens.visible_evidence.join(" · ")} — ${lens.learning_possibilities.join(" · ")}`;
   });
-  const strongest = plan.outcomes[0];
-  if (strongest) {
-    const evidence = qs("#analysisResults .evidence-link-panel p");
-    evidence.textContent = `${strongest.code}: ${strongest.outcome} Visible evidence: ${strongest.visible_evidence}`;
-    if (/^https:\/\//i.test(strongest.source_url)) {
-      const source = document.createElement("a");
-      source.href = strongest.source_url;
-      source.target = "_blank";
-      source.rel = "noreferrer";
-      source.textContent = " Source ↗";
-      evidence.appendChild(source);
-    }
+  const evidencePanel = qs("#analysisResults .evidence-link-panel");
+  const mappings = Array.isArray(plan.evidence_to_learning) ? plan.evidence_to_learning : [];
+  const outcomeByCode = new Map((plan.outcomes || []).map(item => [item.code, item]));
+  evidencePanel.innerHTML = `<strong>What this photograph can teach</strong>${mappings.map(mapping => {
+    const linked = mapping.outcome_codes.map(code => outcomeByCode.get(code)).filter(Boolean);
+    const sources = linked.filter(item => /^https:\/\//i.test(item.source_url)).map(item =>
+      `<a href="${esc(item.source_url)}" target="_blank" rel="noreferrer">${esc(item.code)} source ↗</a>`
+    ).join(" · ");
+    return `<article class="photo-learning-map">
+      <h4>${esc(mapping.visible_feature)}</h4>
+      <p><b>Visible evidence:</b> ${esc(mapping.visual_evidence)}</p>
+      <p><b>Best use for these learners:</b> ${esc(mapping.age_appropriate_use)}</p>
+      <p><b>Curriculum connection:</b> ${esc(mapping.curriculum_connection)}</p>
+      <p><b>Learning progression:</b> ${mapping.progression.map(esc).join(" → ")}</p>
+      ${sources ? `<p>${sources}</p>` : ""}
+    </article>`;
+  }).join("")}`;
+  if (!mappings.length && plan.outcomes?.[0]) {
+    const strongest = plan.outcomes[0];
+    evidencePanel.innerHTML = `<strong>Exact visible-evidence link</strong><p>${esc(strongest.code)}: ${esc(strongest.outcome)} Visible evidence: ${esc(strongest.visible_evidence)}</p>`;
   }
   activities = plan.activities.map((activity, index) => ({
     id: `ai-${Date.now()}-${index}`, title: activity.title, match: activity.curriculum_match, status: "suggested",
