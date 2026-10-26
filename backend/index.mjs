@@ -8,7 +8,7 @@ let cachedKey;
 const schema = {
   type: "object",
   additionalProperties: false,
-  required: ["environment_summary", "suitability_score", "safety", "lenses", "outcomes", "activities", "cross_curricular_links"],
+  required: ["environment_summary", "suitability_score", "safety", "lenses", "evidence_to_learning", "outcomes", "activities", "cross_curricular_links"],
   properties: {
     environment_summary: { type: "string" },
     suitability_score: { type: "integer", minimum: 0, maximum: 100 },
@@ -22,6 +22,21 @@ const schema = {
           name: { type: "string" },
           visible_evidence: { type: "array", items: { type: "string" } },
           learning_possibilities: { type: "array", items: { type: "string" } }
+        }
+      }
+    },
+    evidence_to_learning: {
+      type: "array", minItems: 1, maxItems: 10,
+      items: {
+        type: "object", additionalProperties: false,
+        required: ["visible_feature", "visual_evidence", "age_appropriate_use", "curriculum_connection", "outcome_codes", "progression"],
+        properties: {
+          visible_feature: { type: "string" },
+          visual_evidence: { type: "string" },
+          age_appropriate_use: { type: "string" },
+          curriculum_connection: { type: "string" },
+          outcome_codes: { type: "array", items: { type: "string" } },
+          progression: { type: "array", minItems: 2, maxItems: 4, items: { type: "string" } }
         }
       }
     },
@@ -112,7 +127,7 @@ export const handler = async event => {
     const content = [
       {
         type: "input_text",
-        text: `Analyse every photograph as one combined learning environment. Context: ${JSON.stringify(context)}. Use four lenses: (1) objects, materials and available tools; (2) colours, shapes, patterns and measurements; (3) nature, living systems and physical forces; (4) culture, language, art and sustainability. Link only learning outcomes genuinely supported by visible evidence. Verify curriculum wording using authoritative curriculum-body or government sources. Create exactly three ranked, practical experiential activities. Include selected-subject depth plus sensible cross-curricular links. Adapt for the stated ages and group size. Do not identify people or infer sensitive traits. If evidence is uncertain, lower confidence and say so.`
+        text: `Treat the photographs themselves as the primary evidence and analyse every photograph as one combined learning environment. Context: ${JSON.stringify(context)}. First inventory only features that are genuinely visible: identifiable objects, approximate quantities, dominant and contrasting colours, shades or gradients, shapes, patterns, materials, spatial relationships, living things and physical conditions. Do not invent or assume unseen resources. Use four lenses: (1) objects, materials and available tools; (2) colours, shapes, patterns and measurements; (3) nature, living systems and physical forces; (4) culture, language, art and sustainability. For each strong visible feature, explain exactly how it can support learning for the selected age, grade, subject and curriculum. Show useful progression across ages when relevant—for example, colour recognition at age 4, counting or classifying visible objects at a later stage, and analysing shade, gradient, ratio, measurement or scientific cause at a more advanced stage—but recommend only age-appropriate uses for the selected learners. Each curriculum outcome must cite precise visual evidence from the photograph; exclude any outcome that cannot be demonstrated using what is visible. Verify curriculum wording using authoritative curriculum-body or government sources. Create exactly three ranked practical experiential activities that directly use the photographed features. Include selected-subject depth plus sensible cross-curricular links. Adapt for the stated ages and group size. Do not identify people or infer sensitive traits. If an object, quantity or colour is uncertain, state the uncertainty and lower confidence.`
       },
       ...body.images.map(image_url => ({ type: "input_image", image_url, detail: "auto" }))
     ];
