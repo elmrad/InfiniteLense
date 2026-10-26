@@ -28,7 +28,7 @@ The `backend/` directory contains an AWS SAM Lambda service that:
 - Uses the OpenAI Responses API with vision, web search and Structured Outputs
 - Returns four lenses, verified curriculum links and exactly three ranked activities
 
-Deploy from AWS CloudShell:
+Deploy from AWS CloudShell. During the guided questions, enter the exact Amplify URL for `PortalUrl` and a globally unique lowercase value such as `infinitelense-elmrad` for `CognitoDomainPrefix`:
 
 ```bash
 git clone https://github.com/elmrad/InfiniteLense.git
@@ -37,4 +37,14 @@ sam build
 sam deploy --guided
 ```
 
-After deployment, copy the `AnalysisApiUrl` stack output into `config.js` as `window.INFINITE_LENSE_API_URL`, commit it, and Amplify will redeploy automatically. The API key must never appear in `config.js`.
+The stack creates a Cognito user pool, hosted sign-in, JWT-protected HTTP API, Lambda function and least-privilege permission to read the OpenAI secret. Lambda concurrency is capped at two.
+
+After deployment, copy the three stack outputs into `config.js`:
+
+- `AnalysisApiUrl` → `window.INFINITE_LENSE_API_URL`
+- `CognitoDomain` → `window.INFINITE_LENSE_AUTH.domain`
+- `CognitoClientId` → `window.INFINITE_LENSE_AUTH.clientId`
+
+Commit `config.js`; Amplify will redeploy automatically. These values are public configuration, not secrets. The OpenAI key must never appear in `config.js`.
+
+Finally, create the first permitted teacher under **Amazon Cognito → User pools → InfiniteLense-Teachers → Users → Create user**. Public self-registration is disabled for the MVP.
