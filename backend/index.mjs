@@ -94,7 +94,7 @@ function validate(body) {
 }
 
 export const handler = async event => {
-  const origin = event.headers?.origin || event.headers?.Origin || ALLOWED_ORIGIN;
+  const origin = ALLOWED_ORIGIN;
   if (event.requestContext?.http?.method === "OPTIONS") return response(204, {}, origin);
 
   try {
