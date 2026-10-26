@@ -75,7 +75,6 @@ Resources:
       CodeUri: .
       MemorySize: 1024
       Timeout: 120
-      ReservedConcurrentExecutions: 2
       Environment:
         Variables:
           OPENAI_SECRET_ID: InfiniteLense/prod/openai
