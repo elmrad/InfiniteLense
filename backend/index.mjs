@@ -6,152 +6,139 @@ const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || "*";
 let cachedKey;
 
 const schema = {
-  type: "object",
-  additionalProperties: false,
-  required: ["environment_summary", "suitability_score", "safety", "lenses", "evidence_to_learning", "outcomes", "activities", "cross_curricular_links"],
-  properties: {
-    environment_summary: { type: "string" },
-    suitability_score: { type: "integer", minimum: 0, maximum: 100 },
-    safety: { type: "array", items: { type: "string" } },
-    lenses: {
-      type: "array", minItems: 4, maxItems: 4,
-      items: {
-        type: "object", additionalProperties: false,
-        required: ["name", "visible_evidence", "learning_possibilities"],
-        properties: {
-          name: { type: "string" },
-          visible_evidence: { type: "array", items: { type: "string" } },
-          learning_possibilities: { type: "array", items: { type: "string" } }
+  type:"object",
+  additionalProperties:false,
+  required:["image_reading","detected_evidence","curriculum_outcomes","limitations"],
+  properties:{
+    image_reading:{type:"string"},
+    detected_evidence:{
+      type:"array",minItems:1,maxItems:12,
+      items:{
+        type:"object",additionalProperties:false,
+        required:["category","observation","confidence"],
+        properties:{
+          category:{type:"string"},
+          observation:{type:"string"},
+          confidence:{type:"integer",minimum:0,maximum:100}
         }
       }
     },
-    evidence_to_learning: {
-      type: "array", minItems: 1, maxItems: 10,
-      items: {
-        type: "object", additionalProperties: false,
-        required: ["visible_feature", "visual_evidence", "age_appropriate_use", "curriculum_connection", "outcome_codes", "progression"],
-        properties: {
-          visible_feature: { type: "string" },
-          visual_evidence: { type: "string" },
-          age_appropriate_use: { type: "string" },
-          curriculum_connection: { type: "string" },
-          outcome_codes: { type: "array", items: { type: "string" } },
-          progression: { type: "array", minItems: 2, maxItems: 4, items: { type: "string" } }
+    curriculum_outcomes:{
+      type:"array",minItems:1,maxItems:10,
+      items:{
+        type:"object",additionalProperties:false,
+        required:["area","stage","concept","outcome","child_perspective","visible_evidence","source_title","source_url","confidence"],
+        properties:{
+          area:{type:"string"},
+          stage:{type:"string"},
+          concept:{type:"string"},
+          outcome:{type:"string"},
+          child_perspective:{type:"string"},
+          visible_evidence:{type:"string"},
+          source_title:{type:"string"},
+          source_url:{type:"string"},
+          confidence:{type:"integer",minimum:0,maximum:100}
         }
       }
     },
-    outcomes: {
-      type: "array", minItems: 1, maxItems: 6,
-      items: {
-        type: "object", additionalProperties: false,
-        required: ["code", "outcome", "source_title", "source_url", "visible_evidence", "confidence"],
-        properties: {
-          code: { type: "string" }, outcome: { type: "string" }, source_title: { type: "string" },
-          source_url: { type: "string" }, visible_evidence: { type: "string" },
-          confidence: { type: "integer", minimum: 0, maximum: 100 }
-        }
-      }
-    },
-    activities: {
-      type: "array", minItems: 3, maxItems: 3,
-      items: {
-        type: "object", additionalProperties: false,
-        required: ["rank", "title", "curriculum_match", "outcome_codes", "duration_minutes", "grouping", "materials", "steps", "evidence", "safety", "cross_curricular"],
-        properties: {
-          rank: { type: "integer", minimum: 1, maximum: 3 }, title: { type: "string" },
-          curriculum_match: { type: "integer", minimum: 0, maximum: 100 },
-          outcome_codes: { type: "array", items: { type: "string" } },
-          duration_minutes: { type: "integer", minimum: 10, maximum: 180 }, grouping: { type: "string" },
-          materials: { type: "array", items: { type: "string" } }, steps: { type: "array", items: { type: "string" } },
-          evidence: { type: "string" }, safety: { type: "array", items: { type: "string" } },
-          cross_curricular: { type: "array", items: { type: "string" } }
-        }
-      }
-    },
-    cross_curricular_links: { type: "array", items: { type: "string" } }
+    limitations:{type:"array",items:{type:"string"}}
   }
 };
 
-function response(statusCode, body, origin = ALLOWED_ORIGIN) {
+function response(statusCode,body){
   return {
     statusCode,
-    headers: {
-      "content-type": "application/json",
-      "access-control-allow-origin": origin,
-      "access-control-allow-headers": "content-type",
-      "access-control-allow-methods": "POST,OPTIONS"
+    headers:{
+      "content-type":"application/json",
+      "access-control-allow-origin":ALLOWED_ORIGIN,
+      "access-control-allow-headers":"authorization,content-type",
+      "access-control-allow-methods":"POST,OPTIONS"
     },
-    body: JSON.stringify(body)
+    body:JSON.stringify(body)
   };
 }
 
-async function getOpenAIKey() {
-  if (cachedKey) return cachedKey;
-  const value = await secrets.send(new GetSecretValueCommand({ SecretId: SECRET_ID }));
-  const raw = value.SecretString || "";
-  try {
-    const parsed = JSON.parse(raw);
-    cachedKey = parsed.OPENAI_API_KEY || parsed.openai_api_key;
-  } catch {
-    cachedKey = raw;
+async function getOpenAIKey(){
+  if(cachedKey) return cachedKey;
+  const value=await secrets.send(new GetSecretValueCommand({SecretId:SECRET_ID}));
+  const raw=value.SecretString || "";
+  try{
+    const parsed=JSON.parse(raw);
+    cachedKey=parsed.OPENAI_API_KEY || parsed.openai_api_key;
+  }catch{
+    cachedKey=raw;
   }
-  if (!cachedKey) throw new Error("OPENAI_API_KEY is missing from the configured secret.");
+  if(!cachedKey) throw new Error("OPENAI_API_KEY is missing from the configured secret.");
   return cachedKey;
 }
 
-function validate(body) {
-  if (!Array.isArray(body.images) || body.images.length < 1 || body.images.length > 8) return "Upload between 1 and 8 photographs.";
-  if (!body.curriculum || !body.grade || !body.subject) return "Curriculum, grade and subject are required.";
-  if (!Number.isInteger(body.studentCount) || body.studentCount < 1 || body.studentCount > 100) return "Student count must be between 1 and 100.";
-  if (body.facesDeclared && !body.consentConfirmed) return "Recorded consent is required for identifiable student faces.";
-  if (body.images.some(image => typeof image !== "string" || !image.startsWith("data:image/") || image.length > 1_600_000)) return "Each photograph must be a valid compressed image under the size limit.";
+function stageForAge(age){
+  return {
+    4:"Reception / EYFS",
+    5:"Year 1 / Key Stage 1",
+    6:"Year 2 / Key Stage 1",
+    7:"Year 3 / Key Stage 2",
+    8:"Year 4 / Key Stage 2",
+    9:"Year 5 / Key Stage 2",
+    10:"Year 6 / Key Stage 2",
+    11:"Year 7 / Key Stage 3"
+  }[age];
+}
+
+function validate(body){
+  if(!Array.isArray(body.images) || body.images.length!==1) return "Upload exactly one picture.";
+  if(typeof body.images[0]!=="string" || !body.images[0].startsWith("data:image/") || body.images[0].length>2_400_000) return "The picture must be a valid compressed image.";
+  if(!Number.isInteger(body.age) || body.age<4 || body.age>11) return "Choose an age from 4 to 11.";
+  if(body.curriculum!=="British") return "The MVP currently supports the British curriculum.";
   return null;
 }
 
-export const handler = async event => {
-  const origin = ALLOWED_ORIGIN;
-  if (event.requestContext?.http?.method === "OPTIONS") return response(204, {}, origin);
+export const handler=async event=>{
+  if(event.requestContext?.http?.method==="OPTIONS") return response(204,{});
+  try{
+    const body=JSON.parse(event.body || "{}");
+    const invalid=validate(body);
+    if(invalid) return response(400,{error:invalid});
 
-  try {
-    const body = JSON.parse(event.body || "{}");
-    const invalid = validate(body);
-    if (invalid) return response(400, { error: invalid }, origin);
+    const age=body.age;
+    const stage=stageForAge(age);
+    const key=await getOpenAIKey();
+    const prompt=`You are the InfiniteLense visual curriculum engine. Analyse this single photograph through the developmental and educational perspective of a ${age}-year-old learner in ${stage}, using the statutory curriculum for England. Optional context supplied by the user: ${body.notes || "none"}.
 
-    const key = await getOpenAIKey();
-    const context = {
-      curriculum: body.curriculum, grade: body.grade, subject: body.subject,
-      student_count: body.studentCount, student_ages: body.studentAges,
-      environment_type: body.environmentType, location: body.location, notes: body.notes
-    };
+The photograph is the primary evidence. Inspect it carefully and report only what is genuinely visible. Consider age-appropriate possibilities including, where evidenced: recognising and naming colours; counting visible items; comparing bigger/smaller, more/fewer, longer/shorter or near/far; matching, sorting and classifying; position, direction and proximity; shapes and patterns; addition or subtraction using visible quantities; language and description; living things, materials, forces, place, art and observation. These are possibilities, not a checklist. Do not force a concept that the image does not support.
 
-    const content = [
-      {
-        type: "input_text",
-        text: `Treat the photographs themselves as the primary evidence and analyse every photograph as one combined learning environment. Context: ${JSON.stringify(context)}. First inventory only features that are genuinely visible: identifiable objects, approximate quantities, dominant and contrasting colours, shades or gradients, shapes, patterns, materials, spatial relationships, living things and physical conditions. Do not invent or assume unseen resources. Use four lenses: (1) objects, materials and available tools; (2) colours, shapes, patterns and measurements; (3) nature, living systems and physical forces; (4) culture, language, art and sustainability. For each strong visible feature, explain exactly how it can support learning for the selected age, grade, subject and curriculum. Show useful progression across ages when relevant—for example, colour recognition at age 4, counting or classifying visible objects at a later stage, and analysing shade, gradient, ratio, measurement or scientific cause at a more advanced stage—but recommend only age-appropriate uses for the selected learners. Each curriculum outcome must cite precise visual evidence from the photograph; exclude any outcome that cannot be demonstrated using what is visible. Verify curriculum wording using authoritative curriculum-body or government sources. Create exactly three ranked practical experiential activities that directly use the photographed features. Include selected-subject depth plus sensible cross-curricular links. Adapt for the stated ages and group size. Do not identify people or infer sensitive traits. If an object, quantity or colour is uncertain, state the uncertainty and lower confidence.`
-      },
-      ...body.images.map(image_url => ({ type: "input_image", image_url, detail: "auto" }))
-    ];
+Return only curriculum outcomes appropriate to the selected age and stage. For age 4, prioritise the current EYFS statutory framework and Development Matters only where appropriate. For school ages, prioritise the National Curriculum in England programme of study for the correct year/key stage. Verify wording with official GOV.UK or Department for Education sources using web search. Do not invent curriculum codes. Paraphrase faithfully when exact wording is not needed.
 
-    const api = await fetch("https://api.openai.com/v1/responses", {
-      method: "POST",
-      headers: { authorization: `Bearer ${key}`, "content-type": "application/json" },
-      body: JSON.stringify({
-        model: process.env.OPENAI_MODEL || "gpt-6-luna",
-        input: [{ role: "user", content }],
-        tools: [{ type: "web_search" }],
-        text: { format: { type: "json_schema", name: "experiential_learning_plan", strict: true, schema } },
-        max_output_tokens: 6000,
-        store: false
+For every outcome, explain:
+1. what a child of this age might naturally notice;
+2. the exact visible evidence in this photograph;
+3. why that evidence supports the curriculum outcome.
+
+Do not identify people, infer sensitive traits, or describe a child's identity. If a count, colour, object or spatial relationship is uncertain, say so and lower confidence. Exclude unsupported outcomes. This MVP produces outcomes only—no activities, lesson plans, materials or assessment plans.`;
+
+    const api=await fetch("https://api.openai.com/v1/responses",{
+      method:"POST",
+      headers:{authorization:`Bearer ${key}`,"content-type":"application/json"},
+      body:JSON.stringify({
+        model:process.env.OPENAI_MODEL || "gpt-6-luna",
+        input:[{role:"user",content:[
+          {type:"input_text",text:prompt},
+          {type:"input_image",image_url:body.images[0],detail:"high"}
+        ]}],
+        tools:[{type:"web_search"}],
+        text:{format:{type:"json_schema",name:"image_curriculum_lens",strict:true,schema}},
+        max_output_tokens:5000,
+        store:false
       })
     });
 
-    const data = await api.json();
-    if (!api.ok) throw new Error(data?.error?.message || "OpenAI request failed.");
-    const outputText = data.output_text || data.output?.flatMap(item => item.content || []).find(item => item.type === "output_text")?.text;
-    if (!outputText) throw new Error("OpenAI returned no structured plan.");
-    return response(200, { plan: JSON.parse(outputText) }, origin);
-  } catch (error) {
-    console.error("InfiniteLense analysis failed", error?.message);
-    return response(500, { error: "The environment could not be analysed. Please try again." }, origin);
+    const data=await api.json();
+    if(!api.ok) throw new Error(data?.error?.message || "OpenAI request failed.");
+    const outputText=data.output_text || data.output?.flatMap(item=>item.content || []).find(item=>item.type==="output_text")?.text;
+    if(!outputText) throw new Error("OpenAI returned no structured analysis.");
+    return response(200,{plan:JSON.parse(outputText)});
+  }catch(error){
+    console.error("InfiniteLense analysis failed",error?.message);
+    return response(500,{error:"The picture could not be analysed. Please try again."});
   }
 };
